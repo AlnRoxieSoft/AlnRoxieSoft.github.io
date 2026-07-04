@@ -40,14 +40,15 @@
 
     /* Scrollable app table area */
     #appArea {
-        position: fixed;
-        top: 90px;
-        bottom: 160px;
-        left: 0;
-        right: 0;
-        overflow-y: auto;
-        padding: 10px;
-    }
+    position: fixed;
+    top: 90px;
+    bottom: 160px;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* improves Safari behavior */
+}
+
 
     table {
         width: 100%;
@@ -123,9 +124,18 @@
 }
 
 #scrollBottomIndicator {
-    bottom: 160px; /* same as bottom of appArea */
+    position: fixed;
+    left: 0;
+    right: 0;
+    height: 20px;
+    bottom: calc(160px + 5px); /* 5px above the scroll area edge */
     background: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0));
+    pointer-events: none;
+    z-index: 9;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
+
 
 </style>
 </head>
