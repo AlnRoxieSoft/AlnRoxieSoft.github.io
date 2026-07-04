@@ -119,13 +119,35 @@
 
 #scrollTopIndicator {
     top: 90px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0));
+    height: 24px;
+    background-image: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.55),
+        rgba(0,0,0,0.0)
+    );
 }
+    
 
 #scrollBottomIndicator {
-    bottom: 200px; /* 20px above the scroll area bottom */
-    background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0));
+    bottom: 200px;
+    height: 24px;
+
+    /* Metallic-tech visibility layer */
+    background-color: #f4f4f4; /* matches scroll area */
+    
+    /* Stronger metallic fade */
+    background-image: linear-gradient(
+        to top,
+        rgba(0,0,0,0.55),
+        rgba(0,0,0,0.0)
+    );
+
+    pointer-events: none;
+    z-index: 9;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
+
 
 </style>
 </head>
