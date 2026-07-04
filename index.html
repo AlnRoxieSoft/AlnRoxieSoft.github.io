@@ -103,6 +103,30 @@
         font-size: 20px;
         text-align: center;
     }
+
+    /* Scroll indicators */
+#scrollTopIndicator,
+#scrollBottomIndicator {
+    position: fixed;
+    left: 0;
+    right: 0;
+    height: 20px;
+    pointer-events: none;
+    z-index: 9;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#scrollTopIndicator {
+    top: 90px; /* same as top of appArea */
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0));
+}
+
+#scrollBottomIndicator {
+    bottom: 160px; /* same as bottom of appArea */
+    background: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0));
+}
+
 </style>
 </head>
 
@@ -115,6 +139,9 @@
 <div id="appArea">
     <table id="appTable"></table>
 </div>
+
+<div id="scrollTopIndicator"></div>
+<div id="scrollBottomIndicator"></div>
 
 <div id="footer">
     <h3>Add This Site to Your Home Screen</h3>
@@ -192,6 +219,29 @@
         table.appendChild(row1);
         table.appendChild(row2);
     });
+
+    const appArea = document.getElementById("appArea");
+    const topInd = document.getElementById("scrollTopIndicator");
+    const bottomInd = document.getElementById("scrollBottomIndicator");
+    
+    function updateScrollIndicators() {
+        const scrollTop = appArea.scrollTop;
+        const scrollHeight = appArea.scrollHeight;
+        const clientHeight = appArea.clientHeight;
+    
+        // Show top indicator if not at top
+        topInd.style.opacity = scrollTop > 0 ? 1 : 0;
+    
+        // Show bottom indicator if not at bottom
+        bottomInd.style.opacity = (scrollTop + clientHeight < scrollHeight) ? 1 : 0;
+    }
+    
+    // Update on scroll
+    appArea.addEventListener("scroll", updateScrollIndicators);
+    
+    // Update once on load
+    updateScrollIndicators();
+
 </script>
 
 </body>
