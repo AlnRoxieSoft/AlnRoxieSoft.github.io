@@ -39,17 +39,15 @@
 
 
     /* Scrollable app table area */
-    #appArea {
+   #appArea {
     position: fixed;
     top: 90px;
-    bottom: 165px; /* prevents overlap */
+    bottom: 180px; /* increased buffer */
     left: 0;
     right: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
-
-
 
     table {
         width: 100%;
@@ -125,7 +123,7 @@
 }
 
 #scrollBottomIndicator {
-    bottom: 165px; /* sits perfectly above footer */
+    bottom: 180px; /* sits perfectly above footer */
     background: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0));
 }
 
