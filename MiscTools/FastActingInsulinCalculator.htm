@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <TITLE>Insulin Bolus Calculator</TITLE>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+	<link rel="apple-touch-icon" sizes="144x144" href="Images/FastInsulin144x144.png">	
+		
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f8f9fa; color: #343a40; }
+        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .button-group { margin-bottom: 20px; text-align: center; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; background-color: #007bff; color: #fff; cursor: pointer; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .active { display: block; }
+        .hidden { display: none; }
+        .config-table, .food-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .config-table td, .food-table td { padding: 10px; border: 1px solid #ddd; }
+        .config-table th, .food-table th { padding: 10px; border: 1px solid #ddd; background: #f4f4f4; text-align: left; }
+        .delete-button { background-color: red; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .menu-item { display: flex; align-items: center; margin-bottom: 10px; }
+        .menu-item input[type=checkbox] { margin-right: 10px; }
+        .menu-item input[type=number] { width: 50px; margin-left: 10px; }
+        .Warning {color:red;font-weight:bold}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="button-group">
+            <button id="calcButton" onclick="showCalculator()" disabled>
+			Calculator</button>
+            <button id="menuButton" onclick="showMenu()">Menu</button>
+            <button id="ratiosButton" onclick="showRatios()">My Ratios</button>
+            <button id="foodSettingsButton" onclick="showFoodSettings()">Food 
+			Settings</button>
+        </div>
+
+        <div id="ratiosDiv" class="hidden">
+            <h2>Ratios Configuration</h2>
+            <div>
+                <h3>Breakfast</h3>
+                <table class="config-table">
+                    <tr>
+                        <td>Low Blood Glucose Threshold</td>
+                        <td><input type="number" id="lowBGThresholdBreakfast" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Carb Ratio</td>
+                        <td><input type="number" id="carbRatioBreakfast" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Correction Factor</td>
+                        <td><input type="number" id="corrFactorBreakfast" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Correction Target</td>
+                        <td><input type="number" id="corrTargetBreakfast" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <h3>Lunch</h3>
+                <table class="config-table">
+                    <tr>
+                        <td>Low Blood Glucose Threshold</td>
+                        <td><input type="number" id="lowBGThresholdLunch" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Carb Ratio</td>
+                        <td><input type="number" id="carbRatioLunch" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Correction Factor</td>
+                        <td><input type="number" id="corrFactorLunch" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Correction Target</td>
+                        <td><input type="number" id="corrTargetLunch" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <h3>Dinner</h3>
+                <table class="config-table">
+                    <tr>
+                        <td>Low Blood Glucose Threshold</td>
+                        <td><input type="number" id="lowBGThresholdDinner" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Carb Ratio</td>
+                        <td><input type="number" id="carbRatioDinner" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Correction Factor</td>
+                        <td><input type="number" id="corrFactorDinner" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                    <tr>
+                        <td>Correction Target</td>
+                        <td><input type="number" id="corrTargetDinner" step="0.1" onchange="reactivateSaveButton('ratiosDivSaveButton')"></td>
+                    </tr>
+                </table>
+            </div>
+            <button id="ratiosDivSaveButton" onclick="saveConfig()">Save Ratios</button>
+        </div>
+
+        <div id="mainDiv" class="hidden">
+            <h2>Insulin Bolus Calculator</h2>
+            <div>
+                <label for="mealSelect">Select Meal:</label>
+                <select id="mealSelect">
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                </select>
+            </div>
+            <div>
+                <label for="currentBG">Current BG:</label>
+                <input type="number" id="currentBG" step="0.1">
+            </div>
+            <div>
+                <label for="totalCarbs">Total Carbs:</label>
+                <input type="number" id="totalCarbs" step="0.1">
+            </div>
+            <div>
+            	<button onclick="calculateBolus()">Calculate</button>
+            </div>
+            <BR/>
+            <div>
+                <strong>Carb Bolus:</strong>
+                <span id="carbBolus">0.0</span>
+            </div>
+            <BR/>
+            <div>
+                <strong>Correction Bolus:</strong>
+                <span id="correctionBolus">0.0</span>
+            </div>
+            <BR/>
+            <div>
+                <strong>Total Bolus:</strong>
+                <span id="calculatedBolus">0.0</span>
+            </div>
+            <BR/>
+            <div>
+                <strong>Total Bolus (Half Unit Rounding):</strong>
+                <span id="calculatedBolusHalf">0.0</span>
+            </div>
+            <BR/>
+            <div>
+                <strong>Total Bolus (Whole Unit Rounding):</strong>
+                <span id="calculatedBolusWhole">0.0</span>
+            </div>
+            <BR/>
+            <div id="WarningWrapper" class="Warning" style="display:none">
+                <strong>WARNING!</strong><BR/>
+                <span id="Warning"></span>
+            </div>
+        </div>
+
+        <div id="foodSettingsDiv" class="hidden">
+            <h2>Food Settings</h2>
+            <table class="food-table">
+                <thead>
+                    <tr>
+                        <th>Food</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="foodTableBody">
+                    <!-- Rows will be added here dynamically -->
+                </tbody>
+            </table>
+            <button onclick="addFoodRow()">Add</button>
+            <button id="foodSettingsSaveButton" onclick="saveFoodItems()">Save</button>
+        </div>
+
+        <div id="menuDiv" class="hidden">
+            <h2>Menu</h2>
+            <div id="menuItems">
+                <!-- Menu items will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    	/*
+    		const conFoodDefaults = 'McDonalds Apple Slices (Bag);4|McDonalds Fat Free Chocolate Milk Jug;23|McDonalds Sausage Burrito;26|McDonalds Blueberry Muffin;64|McDonalds Sausage McGriddle;42|McDonalds Picante Sauce (Mild);1|McDonalds McNuggets (04);11|McDonalds McNuggets (06);16|McDonalds McNuggets (10);26|McDonalds McNuggets (20);53|McDonalds Ranch;9|Little Ceasars Crazy Bread;17|Little Ceasars Crazy Sauce;7|Little Ceasars Pizza Slice;31|Taco Bell Beef Soft Taco;17|Subway Tomato Basil Wrap;49|Wendys Chicken Nuggets (04);10|Wendys Chicken Nuggets (06);14|Wendys Chicken Nuggets (10);24|Wendys Small French Fry;36';
+    	*/
+    	const conFoodDefaults = 'Breakfast Bowl;12|Little Ceasars Crazy Bread;17|Little Ceasars Crazy Sauce;7|Little Ceasars Pizza Slice;31|McDonalds Sausage Burrito;26|Taco Bell Beef Soft Taco;17|Taco Bell Supreme Soft Taco;20|Typhoo Tea (Small Cup);10|Typhoo Tea (Large Cup);20';
+    	
+    	
+    	
+        function showCalculator() {
+            document.getElementById('mainDiv').classList.add('active');
+            document.getElementById('mainDiv').classList.remove('hidden');
+            document.getElementById('ratiosDiv').classList.add('hidden');
+            document.getElementById('ratiosDiv').classList.remove('active');
+            document.getElementById('foodSettingsDiv').classList.add('hidden');
+            document.getElementById('foodSettingsDiv').classList.remove('active');
+            document.getElementById('menuDiv').classList.add('hidden');
+            document.getElementById('menuDiv').classList.remove('active');
+            document.getElementById('calcButton').disabled = true;
+            document.getElementById('ratiosButton').disabled = false;
+            document.getElementById('foodSettingsButton').disabled = false;
+            document.getElementById('menuButton').disabled = false;
+        }
+
+        function showRatios() {
+            document.getElementById('ratiosDiv').classList.add('active');
+            document.getElementById('ratiosDiv').classList.remove('hidden');
+            document.getElementById('mainDiv').classList.add('hidden');
+            document.getElementById('mainDiv').classList.remove('active');
+            document.getElementById('foodSettingsDiv').classList.add('hidden');
+            document.getElementById('foodSettingsDiv').classList.remove('active');
+            document.getElementById('menuDiv').classList.add('hidden');
+            document.getElementById('menuDiv').classList.remove('active');
+            document.getElementById('calcButton').disabled = false;
+            document.getElementById('ratiosButton').disabled = true;
+            document.getElementById('foodSettingsButton').disabled = false;
+            document.getElementById('menuButton').disabled = false;
+        }
+
+        function showFoodSettings() {
+            document.getElementById('foodSettingsDiv').classList.add('active');
+            document.getElementById('foodSettingsDiv').classList.remove('hidden');
+            document.getElementById('mainDiv').classList.add('hidden');
+            document.getElementById('mainDiv').classList.remove('active');
+            document.getElementById('ratiosDiv').classList.add('hidden');
+            document.getElementById('ratiosDiv').classList.remove('active');
+            document.getElementById('menuDiv').classList.add('hidden');
+            document.getElementById('menuDiv').classList.remove('active');
+            document.getElementById('calcButton').disabled = false;
+            document.getElementById('ratiosButton').disabled = false;
+            document.getElementById('foodSettingsButton').disabled = true;
+            document.getElementById('menuButton').disabled = false;
+        }
+
+        function showMenu() {
+            document.getElementById('menuDiv').classList.add('active');
+            document.getElementById('menuDiv').classList.remove('hidden');
+            document.getElementById('mainDiv').classList.add('hidden');
+            document.getElementById('mainDiv').classList.remove('active');
+            document.getElementById('ratiosDiv').classList.add('hidden');
+            document.getElementById('ratiosDiv').classList.remove('active');
+            document.getElementById('foodSettingsDiv').classList.add('hidden');
+            document.getElementById('foodSettingsDiv').classList.remove('active');
+            document.getElementById('calcButton').disabled = false;
+            document.getElementById('ratiosButton').disabled = false;
+            document.getElementById('foodSettingsButton').disabled = false;
+            document.getElementById('menuButton').disabled = true;
+        }
+
+        function saveConfig() {
+            const config = {
+                breakfast: {
+                	lowBGThreshold: parseFloat(document.getElementById('lowBGThresholdBreakfast').value),
+                    carbRatio: parseFloat(document.getElementById('carbRatioBreakfast').value),
+                    corrFactor: parseFloat(document.getElementById('corrFactorBreakfast').value),
+                    corrTarget: parseFloat(document.getElementById('corrTargetBreakfast').value)
+                },
+                lunch: {
+                    lowBGThreshold: parseFloat(document.getElementById('lowBGThresholdLunch').value),
+                    carbRatio: parseFloat(document.getElementById('carbRatioLunch').value),
+                    corrFactor: parseFloat(document.getElementById('corrFactorLunch').value),
+                    corrTarget: parseFloat(document.getElementById('corrTargetLunch').value)
+                },
+                dinner: {
+                	lowBGThreshold: parseFloat(document.getElementById('lowBGThresholdDinner').value),
+                    carbRatio: parseFloat(document.getElementById('carbRatioDinner').value),
+                    corrFactor: parseFloat(document.getElementById('corrFactorDinner').value),
+                    corrTarget: parseFloat(document.getElementById('corrTargetDinner').value)
+                }
+            };
+            localStorage.setItem('fastInsulinConfigRoxie', JSON.stringify(config));
+            const saveButton = document.getElementById('ratiosDivSaveButton');
+            saveButton.disabled = true;
+        }
+        
+        function loadConfig() {
+        	//REMOVE NEXT TWO LINES BEFORE PUBLISHING!
+        	//localStorage.removeItem('fastInsulinConfigRoxie');
+        	//alert('Removed Ratios.');
+        
+        	const config = JSON.parse(localStorage.getItem('fastInsulinConfigRoxie'));
+            if (config) {
+            	document.getElementById('lowBGThresholdBreakfast').value = config.breakfast.lowBGThreshold || '';
+                document.getElementById('carbRatioBreakfast').value = config.breakfast.carbRatio || '';
+                document.getElementById('corrFactorBreakfast').value = config.breakfast.corrFactor || '';
+                document.getElementById('corrTargetBreakfast').value = config.breakfast.corrTarget || '';
+
+                document.getElementById('lowBGThresholdLunch').value = config.lunch.lowBGThreshold || '';
+                document.getElementById('carbRatioLunch').value = config.lunch.carbRatio || '';
+                document.getElementById('corrFactorLunch').value = config.lunch.corrFactor || '';
+                document.getElementById('corrTargetLunch').value = config.lunch.corrTarget || '';
+
+                document.getElementById('lowBGThresholdDinner').value = config.dinner.lowBGThreshold || '';
+                document.getElementById('carbRatioDinner').value = config.dinner.carbRatio || '';
+                document.getElementById('corrFactorDinner').value = config.dinner.corrFactor || '';
+                document.getElementById('corrTargetDinner').value = config.dinner.corrTarget || '';
+                
+                const saveButton = document.getElementById('ratiosDivSaveButton');
+            	saveButton.disabled = true;
+            	showCalculator(); // Show the calculator by default
+	        }
+	        else {
+	        	showRatios(); // Show the calculator by default
+	        }
+        }
+
+                
+        function calculateBolus() {
+	        const meal = document.getElementById('mealSelect').value;
+	        const currentBG = parseFloat(document.getElementById('currentBG').value);
+	        const totalCarbs = parseFloat(document.getElementById('totalCarbs').value);
+	
+	        const config = JSON.parse(localStorage.getItem('fastInsulinConfigRoxie')) || {};
+	        const mealConfig = config[meal] || {};
+	
+			if (config && config[meal] && !isNaN(totalCarbs) && !isNaN(currentBG)) {
+		        const lowBGThreshold = parseFloat(mealConfig.lowBGThreshold || 0);
+		        const carbRatio = parseFloat(mealConfig.carbRatio || 0);
+		        const corrFactor = parseFloat(mealConfig.corrFactor || 0);
+		        const corrTarget = parseFloat(mealConfig.corrTarget || 0);
+		
+				//-------------------------------------
+				var carbBolus = totalCarbs / carbRatio;
+				
+				var baseLineAdjustedBG = currentBG - corrTarget;
+				//alert('Baseline:' + baseLineAdjustedBG);
+				//alert('currentBG:' + currentBG + '\nlowBGThreshold:' + lowBGThreshold + '\ncorrTarget:' + corrTarget); 
+
+				if(currentBG >= lowBGThreshold && currentBG <= corrTarget) {
+					var correctionBolus = 0;
+					var totalBolus = carbBolus;
+				} 
+				else if(baseLineAdjustedBG < 0) {
+					var correctionBolus = Math.floor(baseLineAdjustedBG / corrFactor);
+					//alert('Correction Bolus:' + correctionBolus);
+					var totalBolus = carbBolus + correctionBolus;
+					//alert('Total Bolus:' + totalBolus);
+				}
+	            else {
+            		var correctionBolus = Math.ceil(baseLineAdjustedBG / corrFactor);
+					//alert('Correction Bolus:' + correctionBolus);					
+	            	var totalBolus = carbBolus + correctionBolus;
+					//alert('Total Bolus:' + totalBolus);
+				}
+	            
+	            var roundedHalfUnits=Math.ceil(totalBolus*2)/2;
+				//alert('Rounded Half Units = ' + roundedHalfUnits);
+				var roundedWholeUnits=Math.ceil(totalBolus);
+            	//alert('Rounded Whole Units = ' + roundedWholeUnits);
+	            
+	            if (currentBG < lowBGThreshold) {
+					var strWarning = 'Blood sugar is low. Check again in 15 minutes after eating. If it continues to drop, call endocrinology office or go to emergency room.';
+				}
+				else if (currentBG >= 400) {
+					var strWarning = 'Recheck glucose level in 1 hour, and if not coming down, call endocrinology office or go to emergency room.';
+				}
+				else
+				{
+					var strWarning='';
+				}
+	            
+	            document.getElementById('carbBolus').innerText = carbBolus;
+	            document.getElementById('correctionBolus').innerText = correctionBolus;
+	            document.getElementById('calculatedBolus').innerText = Math.round(totalBolus*100)/100;
+	            document.getElementById('calculatedBolusHalf').innerText = roundedHalfUnits;
+	            document.getElementById('calculatedBolusWhole').innerText = roundedWholeUnits;
+            
+            	document.getElementById('Warning').innerText=strWarning;
+            	
+            	if(strWarning!='') {
+            		document.getElementById('WarningWrapper').style.display='';	
+            	}
+            	else {
+            		document.getElementById('WarningWrapper').style.display='None';
+            	}
+            	
+            	
+            
+            }
+            else {
+            	document.getElementById('calculatedBolus').innerText = 'Invalid input';
+	            document.getElementById('calculatedBolusHalf').innerText = 'Invalid input';
+	            document.getElementById('calculatedBolusWhole').innerText = 'Invalid input';
+			}    	
+	    }        
+
+        function addFoodRow(foodName = '', totalCarbs = '') {
+            const tableBody = document.getElementById('foodTableBody');
+            const row = document.createElement('tr');
+
+            const foodNameCell = document.createElement('td');
+            const foodNameSpan = document.createElement('span');
+            foodNameSpan.textContent = 'Name ';
+            foodNameCell.appendChild(foodNameSpan);
+			
+            const foodNameInput = document.createElement('input');
+            foodNameInput.type = 'text';
+            foodNameInput.value = foodName;
+            foodNameInput.oninput = () => reactivateSaveButton('foodSettingsSaveButton');
+            foodNameCell.appendChild(foodNameInput);
+			
+			const lineBreak  =document.createElement('br');
+			foodNameCell.appendChild(lineBreak);
+            
+            const foodCarbSpan = document.createElement('span');
+            foodCarbSpan.textContent = 'Carbs ';
+            foodNameCell.appendChild(foodCarbSpan);
+			
+            const totalCarbsInput = document.createElement('input');
+            totalCarbsInput.type = 'number';
+            totalCarbsInput.value = totalCarbs;
+            totalCarbsInput.step = '0.1';
+            totalCarbsInput.oninput = () => reactivateSaveButton('foodSettingsSaveButton');
+            
+            foodNameCell.appendChild(totalCarbsInput);
+			
+            const actionCell = document.createElement('td');
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.onclick = function() {
+                row.remove();
+                reactivateSaveButton('foodSettingsSaveButton');
+            };
+            actionCell.appendChild(deleteButton);
+
+            row.appendChild(foodNameCell);
+            row.appendChild(actionCell);
+
+            tableBody.appendChild(row);
+        }
+
+        function saveFoodItems() {
+            const tableBody = document.getElementById('foodTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+            const foodItems = [];
+
+            for (let row of rows) {
+                const foodName = row.cells[0].getElementsByTagName('input')[0].value;
+                const totalCarbs = row.cells[0].getElementsByTagName('input')[1].value;
+                if (foodName && totalCarbs && !isNaN(totalCarbs)) {
+                    foodItems.push({ foodName, totalCarbs: parseFloat(totalCarbs) });
+                }
+            }
+
+            localStorage.setItem('foodItemsRoxie', JSON.stringify(foodItems));
+            const saveButton = document.getElementById('foodSettingsSaveButton');
+            saveButton.disabled = true;
+            loadMenuItems();
+        }
+
+        function loadFoodItems() {
+        	//REMOVE THIS NEXT TWO LINES FBEFORE PUBLISHING!
+        	//localStorage.removeItem('foodItemsRoxie');        	
+        	//alert('removed Food Items');
+        	
+        	
+        	// Check if the JSON object exists in local storage
+			if (localStorage.getItem('foodItemsRoxie') !== null) {
+				//alert('Loading food items');
+				const foodItems = JSON.parse(localStorage.getItem('foodItemsRoxie')) || [];
+            	foodItems.forEach(item => addFoodRow(item.foodName, item.totalCarbs));
+            	const saveButton = document.getElementById('foodSettingsSaveButton');
+            	saveButton.disabled = true;
+        	}
+        	else
+        	{
+        		//alert('No food items');
+        		// Split the food defaults pre-defined constant string into food/carb pairs
+				let pairs = conFoodDefaults.split('|');
+				
+				// Initialize an array to hold the parsed data
+				let foodArray = [];
+							
+				// Loop through each pair and split into food name and carbs
+				for (let pair of pairs) {
+				  let [food, carbs] = pair.split(';');
+				  foodArray.push([food, carbs]);
+				}
+				
+				// Loop through the foodArray to create the output string
+				for (let [foodName, totalCarbs] of foodArray) {
+				  addFoodRow(foodName, totalCarbs);
+				}
+				saveFoodItems();
+			}
+        }
+
+        function loadMenuItems() {
+        	//REMOVE NEXT TWO LINES BEFORE PUBLISHING!
+        	//localStorage.removeItem('menuItemsRoxie');
+        	//alert('Removed Menu Items.');
+        
+            const menuItemsDiv = document.getElementById('menuItems');
+            menuItemsDiv.innerHTML = '';
+
+            const foodItems = JSON.parse(localStorage.getItem('foodItemsRoxie')) || [];
+            foodItems.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.classList.add('menu-item');
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `foodCheckbox${index}`;
+                checkbox.onchange = updateTotalCarbs;
+
+                const label = document.createElement('label');
+                label.innerText = item.foodName;
+                label.htmlFor = `foodCheckbox${index}`;
+
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.value = 1;
+                quantityInput.min = 1;
+                quantityInput.step = 1;
+                quantityInput.onchange = updateTotalCarbs;
+
+                row.appendChild(checkbox);
+                row.appendChild(label);
+                row.appendChild(quantityInput);
+
+                menuItemsDiv.appendChild(row);
+            });
+        }
+
+        function updateTotalCarbs() {
+            const menuItemsDiv = document.getElementById('menuItems');
+            const rows = menuItemsDiv.children;
+            let totalCarbs = 0;
+
+            for (let row of rows) {
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                const quantityInput = row.querySelector('input[type="number"]');
+                if (checkbox.checked) {
+                    const foodName = row.querySelector('label').innerText;
+                    const foodItem = JSON.parse(localStorage.getItem('foodItemsRoxie')).find(item => item.foodName === foodName);
+                    totalCarbs += parseFloat(foodItem.totalCarbs) * parseInt(quantityInput.value);
+                }
+            }
+
+            document.getElementById('totalCarbs').value = totalCarbs.toFixed(1);
+        }
+        
+        
+
+        function initializeApp() {
+            loadFoodItems();
+	        loadMenuItems();
+	        loadConfig();
+	    }
+	
+	    function reactivateSaveButton(buttonId) {
+	        const saveButton = document.getElementById(buttonId);
+	        saveButton.disabled = false;
+	    }
+
+    window.onload = initializeApp;
+</script>
+
+
+
+
+
+
+</body>
+</html>
